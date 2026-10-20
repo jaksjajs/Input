@@ -1,0 +1,49 @@
+{
+	"geode": "5.0.0",
+	"gd": {
+		"win": "*",
+		"android": "*",
+		"mac": "*",
+		"ios": "*"
+	},
+	"id": "tunombre.input-buffer",
+	"name": "Input Buffer",
+	"version": "v1.0.0",
+	"developer": "tunombre",
+	"description": "Buffer de clics para modos de suelo y rewind al morir: corrige tu último clic unos frames para que no mueras.",
+	"settings": {
+		"rewind-enabled": {
+			"type": "bool",
+			"name": "Rewind al morir",
+			"description": "Al ir a morir, vuelve unos frames atrás y prueba mover tu último clic para sobrevivir.",
+			"default": true
+		},
+		"max-shift": {
+			"type": "int",
+			"name": "Corrimiento máximo (pasos de física)",
+			"description": "Cuántos pasos se prueba mover el último clic, hacia adelante y hacia atrás.",
+			"default": 4,
+			"min": 1,
+			"max": 12,
+			"control": {
+				"slider": true
+			}
+		},
+		"enabled": {
+			"type": "bool",
+			"name": "Activado",
+			"default": true
+		},
+		"buffer-steps": {
+			"type": "int",
+			"name": "Ventana del buffer (pasos de física)",
+			"description": "Cuántos pasos de física se recuerda un clic hecho en el aire.",
+			"default": 6,
+			"min": 1,
+			"max": 30,
+			"control": {
+				"slider": true
+			}
+		}
+	}
+}
