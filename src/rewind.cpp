@@ -24,7 +24,7 @@ namespace {
 	constexpr int kRecent = 24;    // el último clic tiene que ser de hace menos de esto
 	constexpr float kStepDt = 1.f / 240.f;  // OJO: asume 240 TPS (sin TPS bypass)
 
-	struct Event {
+	struct ClickEvent {
 		int step;
 		bool down;
 		int button;
@@ -39,7 +39,7 @@ namespace {
 
 	struct State {
 		int step = 0;
-		std::deque<Event> events;
+		std::deque<ClickEvent> events;
 		std::deque<Snap> snaps;
 		bool gameHeld[2][4] = {};
 		bool liveHeld[2][4] = {};
@@ -51,9 +51,9 @@ namespace {
 		bool allowDeath = false;  // dejar que la muerte ocurra de verdad
 		int snapStep = 0;
 		int windowEnd = 0;
-		std::vector<Event> base;                // jugada original
-		std::vector<std::vector<Event>> cands;  // versiones corregidas
-		const std::vector<Event>* current = nullptr;
+		std::vector<ClickEvent> base;                // jugada original
+		std::vector<std::vector<ClickEvent>> cands;  // versiones corregidas
+		const std::vector<ClickEvent>* current = nullptr;
 
 		void clear() {
 			step = 0;
@@ -170,10 +170,10 @@ class $modify(RewindBase, GJBaseGameLayer) {
 		GJBaseGameLayer::handleButton(down, button, isPlayer1);
 	}
 
-	void processCommands(float dt) {
+	void processCommands(float dt, bool isHalfTick, bool isLastTick) {
 		auto pl = PlayLayer::get();
 		if (!pl || static_cast<GJBaseGameLayer*>(pl) != this || !rewindOn()) {
-			return GJBaseGameLayer::processCommands(dt);
+			return GJBaseGameLayer::processCommands(dt, isHalfTick, isLastTick);
 		}
 
 		if (g.ff) {
@@ -192,7 +192,7 @@ class $modify(RewindBase, GJBaseGameLayer) {
 			takeSnapshot(pl);
 		}
 
-		GJBaseGameLayer::processCommands(dt);
+		GJBaseGameLayer::processCommands(dt, isHalfTick, isLastTick);
 		g.step++;
 	}
 };
@@ -263,7 +263,7 @@ class $modify(RewindPlayLayer, PlayLayer) {
 		// Hace falta un clic reciente que corregir.
 		if (g.events.empty()) return PlayLayer::destroyPlayer(player, obj);
 		int D = g.step;
-		Event last = g.events.back();
+		ClickEvent last = g.events.back();
 		int shift = maxShift();
 		if (D - last.step > kRecent) return PlayLayer::destroyPlayer(player, obj);
 
@@ -276,13 +276,13 @@ class $modify(RewindPlayLayer, PlayLayer) {
 		if (!snap) return PlayLayer::destroyPlayer(player, obj);
 		int snapStep = snap->step;
 
-		std::vector<Event> base;
+		std::vector<ClickEvent> base;
 		for (auto& e : g.events) {
 			if (e.step >= snapStep) base.push_back(e);
 		}
 		if (base.empty()) return PlayLayer::destroyPlayer(player, obj);
 
-		std::vector<std::vector<Event>> cands;
+		std::vector<std::vector<ClickEvent>> cands;
 		for (int k = 1; k <= shift; k++) {
 			for (int sign : {1, -1}) {
 				int ns = last.step + sign * k;
